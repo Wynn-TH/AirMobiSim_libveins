@@ -23,7 +23,6 @@
 //
 
 #include "DroCIMobility.h"
-
 using namespace airmobisim;
 using namespace veins;
 
@@ -31,9 +30,9 @@ Define_Module(DroCIMobility);
 
 void DroCIMobility::initialize(int stage)
 {
-
+    VeinsInetMobility::initialize(stage);
     if (stage == 0) {
-        BaseMobility::initialize(stage);
+        //BaseMobility::initialize(stage);
         hostPositionOffset = par("hostPositionOffset");
         setHostSpeed = par("setHostSpeed");
 
@@ -45,19 +44,19 @@ void DroCIMobility::initialize(int stage)
 
         ASSERT(isPreInitialized);
         isPreInitialized = false;
-
+        emitMobilityStateChangedSignal();
     }
-    else if (stage == 1) {
-
-    }
-    else {
-        BaseMobility::initialize(stage);
-    }
+//    else if (stage == 1) {
+//
+//    }
+//    else {
+//        BaseMobility::initialize(stage);
+//    }
 }
 
 void DroCIMobility::handleMessage(cMessage* msg)
 {
-
+    VeinsInetMobility::handleSelfMessage(msg);
 }
 
 void DroCIMobility::preInitialize(std::string external_id, const Coord& position, double speed, double angle)
@@ -72,18 +71,18 @@ void DroCIMobility::preInitialize(std::string external_id, const Coord& position
     this->setHostSpeed = par("setHostSpeed");
     this->heading = heading_new;
 
-    Coord nextPos = calculateHostPosition(roadPosition);
-    //set nextPos.z to UAV height
-    nextPos.z = position.z;
-
-    move.setStart(nextPos);
-    move.setDirectionByVector(heading.toCoord());
-    move.setOrientationByVector(heading.toCoord());
-
-
-    if (this->setHostSpeed) {
-        move.setSpeed(speed);
-    }
+//    Coord nextPos = calculateHostPosition(roadPosition);
+//    //set nextPos.z to UAV height
+//    nextPos.z = position.z;
+//
+//    move.setStart(nextPos);
+//    move.setDirectionByVector(heading.toCoord());
+//    move.setOrientationByVector(heading.toCoord());
+//
+//
+//    if (this->setHostSpeed) {
+//        move.setSpeed(speed);
+//    }
 
     isPreInitialized = true;
 }
@@ -111,7 +110,7 @@ void DroCIMobility::changePosition()
     // keep statistics (for current step)
     currentPosXVec.record(nextPos.x);
     currentPosYVec.record(nextPos.y);
-
+    currentSpeedVec.record(speed);
 
     this->lastUpdate = simTime();
 
@@ -125,31 +124,33 @@ void DroCIMobility::changePosition()
         hostMod->getDisplayString().setTagArg("veins", 0, ". ");
     }
 
-    move.setStart(Coord(nextPos.x, nextPos.y, nextPos.z)); // z is UAV height 
-    move.setDirectionByVector(heading.toCoord());
-    move.setOrientationByVector(heading.toCoord());
-    if (this->setHostSpeed) {
-        move.setSpeed(speed);
-    }
-    fixIfHostGetsOutside();
-    updatePosition();
+    updateMobilityStateFromCustom();
+
+//    move.setStart(Coord(nextPos.x, nextPos.y, nextPos.z)); // z is UAV height
+//    move.setDirectionByVector(heading.toCoord());
+//    move.setOrientationByVector(heading.toCoord());
+//    if (this->setHostSpeed) {
+//        move.setSpeed(speed);
+//    }
+//    fixIfHostGetsOutside();
+//    updatePosition();
 }
 
-void DroCIMobility::fixIfHostGetsOutside()
-{
-    Coord pos = move.getStartPos();
-    Coord dummy = Coord::ZERO;
-    double dum;
-
-    bool outsideX = (pos.x < 0) || (pos.x >= playgroundSizeX());
-    bool outsideY = (pos.y < 0) || (pos.y >= playgroundSizeY());
-    bool outsideZ = (!world->use2D()) && ((pos.z < 0) || (pos.z >= playgroundSizeZ()));
-    if (outsideX || outsideY || outsideZ) {
-        throw cRuntimeError("Tried moving host to (%f, %f) which is outside the playground", pos.x, pos.y);
-    }
-
-    handleIfOutside(RAISEERROR, pos, dummy, dummy, dum);
-}
+//void DroCIMobility::fixIfHostGetsOutside()
+//{
+//    Coord pos = move.getStartPos();
+//    Coord dummy = Coord::ZERO;
+//    double dum;
+//
+//    bool outsideX = (pos.x < 0) || (pos.x >= playgroundSizeX());
+//    bool outsideY = (pos.y < 0) || (pos.y >= playgroundSizeY());
+//    bool outsideZ = (!world->use2D()) && ((pos.z < 0) || (pos.z >= playgroundSizeZ()));
+//    if (outsideX || outsideY || outsideZ) {
+//        throw cRuntimeError("Tried moving host to (%f, %f) which is outside the playground", pos.x, pos.y);
+//    }
+//
+//    handleIfOutside(RAISEERROR, pos, dummy, dummy, dum);
+//}
 
 Coord DroCIMobility::calculateHostPosition(const Coord& vehiclePos) const
 {
@@ -163,3 +164,20 @@ Coord DroCIMobility::calculateHostPosition(const Coord& vehiclePos) const
     }
     return corPos;
 }
+
+void DroCIMobility::updateMobilityStateFromCustom() {
+    Coord nextPos = calculateHostPosition(roadPosition);
+    this->lastPosition = inet::Coord(nextPos.x, nextPos.y, nextPos.z);
+
+    inet::Coord v(speed * heading.toCoord().x,
+                  speed * heading.toCoord().y,
+                  speed * heading.toCoord().z);
+    currentSpeedVec.record(v.length());
+
+
+    emitMobilityStateChangedSignal();
+    updateDisplayStringFromMobilityState();
+}
+
+
+

@@ -25,11 +25,17 @@
 
 package veins_libairmobisim.mobility;
 
-import org.car2x.veins.base.modules.BaseMobility;
+//import org.car2x.veins.base.modules.BaseMobility;
+import org.car2x.veins.subprojects.veins_inet.VeinsInetMobility;
 
-simple DroCIMobility extends BaseMobility {
+simple DroCIMobility extends VeinsInetMobility {
     parameters:
     	@class(airmobisim::DroCIMobility);
         double hostPositionOffset @unit("m") = default(0.0m);  // shift OMNeT++ module this far from front of the car
-        bool setHostSpeed = default(false);  // whether to update the speed of the host (along with its position)        
+        bool setHostSpeed = default(false);  // whether to update the speed of the host (along with its position) 
+        
+        
+        double xOrientation = default(1);
+        double yOrientation = default(0);
+        double zOrientation = default(0);       
 }

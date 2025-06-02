@@ -1,0 +1,3 @@
+/home/tianhao/Documents/workspace_uav/AirMobiSim_libveins/build/Release/CMakeFiles/veins_libairmobisim.dir
+/home/tianhao/Documents/workspace_uav/AirMobiSim_libveins/build/Release/CMakeFiles/edit_cache.dir
+/home/tianhao/Documents/workspace_uav/AirMobiSim_libveins/build/Release/CMakeFiles/rebuild_cache.dir

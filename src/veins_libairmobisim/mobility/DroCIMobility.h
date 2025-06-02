@@ -24,28 +24,24 @@
 
 #include "veins_libairmobisim/veins_libairmobisim.h"
 #include "veins/base/utils/Coord.h"
-#include "veins/base/modules/BaseMobility.h"
+//#include "veins/base/modules/BaseMobility.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/utils/Heading.h"
+#include "veins_inet/VeinsInetMobility.h"
 
 using namespace omnetpp;
 using namespace veins;
 
 namespace airmobisim {
 
-class DroCIMobility : public BaseMobility {
+class DroCIMobility : public veins::VeinsInetMobility {
 
 protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage* msg) override;
 
 public:
-    DroCIMobility()
-        :BaseMobility()
-        , isPreInitialized(false)
-    {
-
-    }
+    DroCIMobility() = default;
     void preInitialize(std::string external_id, const Coord& position, double speed, double angle);
     virtual void changePosition();
     void nextPosition(const Coord& position, double speed, double angle);
@@ -63,7 +59,7 @@ protected:
     bool setHostSpeed; /**< whether to update the speed of the host (along with its position)  */
 
     simtime_t lastUpdate; /**< updated by nextPosition() */
-    Coord roadPosition; /**< position of front bumper, updated by nextPosition() */
+    veins::Coord roadPosition; /**< position of front bumper, updated by nextPosition() */
     double speed; /**< updated by nextPosition() */
     Heading heading; /**< updated by nextPosition() */
 private:
@@ -71,9 +67,9 @@ private:
     /**
      * Calculates where the OMNeT++ module position of this UAV should be, given its front position
      */
-    Coord calculateHostPosition(const Coord& vehiclePos) const;
-
-    void fixIfHostGetsOutside() override; /**< called after each read to check for (and handle) invalid positions */
+    veins::Coord calculateHostPosition(const Coord& vehiclePos) const;
+    void updateMobilityStateFromCustom();
+    //void fixIfHostGetsOutside(); /**< called after each read to check for (and handle) invalid positions */
 };
 
 

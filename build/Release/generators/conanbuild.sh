@@ -1,0 +1,1 @@
+. "/home/tianhao/Documents/workspace_uav/AirMobiSim_libveins/build/Release/generators/conanbuildenv-release-x86_64.sh"
